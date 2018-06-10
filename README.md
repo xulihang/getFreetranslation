@@ -4,5 +4,5 @@
 
 比如A piece of cake翻译为小菜一碟，是意译。
 
-而What's are you talking about?翻译为你在说什么，则是直译。
+而What are you talking about?翻译为你在说什么，则是直译。
 

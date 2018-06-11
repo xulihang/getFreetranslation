@@ -26,6 +26,7 @@ def match(word,cn):
 
     result=True #默认是有匹配的
     for entry in ecDic[word]:
+        print(entry)
         if cn.find(entry)==-1: #该释义没有匹配，查看其同义词是否匹配
             result=False
             if entry in synonymsDic:
@@ -34,11 +35,14 @@ def match(word,cn):
                     if cn.find(syn)!=-1:
                         print("有同义词释义“"+syn+"”对应")
                         synResult=True
+                        break
                 if synResult==True: #遍历所有同义词后如果有匹配
                     result=True
+                    break
         else:
             print("有释义“"+entry+"”对应")
             result=True
+            break
 
     return result
         
@@ -70,8 +74,8 @@ for line in fd.readlines():
     synonymsDic[key]=entryList
 fd.close()
 
-print(ecDic)
-print(synonymsDic)
+#print(ecDic)
+#print(synonymsDic)
 
 
 keep=[]
@@ -84,22 +88,27 @@ for line in f.readlines():
     for item in tagged:
         word=str(item[0])
         if item[1].startswith("JJ") or item[1].startswith("NN") or item[1].startswith("VB") or item[1].startswith("WP"):
-            print("\n"+word+"是实词")
+            print("\n"+word+" （词形还原后："+lemmatize(item)+"）是实词")
         else:
             continue #只有实词才进行匹配检测
-        if word in ecDic:
+
+        if lemmatize(item) in ecDic: #优先使用进行词形还原的词
+            word=lemmatize(item)
+        elif word in ecDic:
             word=word
         elif word.lower() in ecDic:
             word=word.lower()
-        elif lemmatize(item) in ecDic:
-            word=lemmatize(item)
         else:
             print("词典中没有该条目")
             continue
 
         
         result=match(word,cn)
-        print("结果"+str(result))
+        if result==False:
+            print("False. "+word+"在“"+cn+"”中没有被翻译出来。")
+        else:
+            print("True. "+word+"在“"+cn+"”中有被翻译出来。")
+        
         if result==False:
             keep.append(line)
             break

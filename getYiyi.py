@@ -101,7 +101,6 @@ for line in f.readlines():
         word=str(item[0])
         if type(item)==nltk.tree.Tree:
             print(str(item)+"这是命名实体，跳过")
-
             continue
         if item[1].startswith("JJ") or item[1].startswith("NN") or item[1].startswith("VB") or item[1].startswith("WP"):
             print("\n"+word+" （词形还原后："+lemmatize(item)+"）是实词")

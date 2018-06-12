@@ -1,7 +1,7 @@
 #coding=utf-8
 from nltk.stem import WordNetLemmatizer 
 import nltk
-
+import os
 
 
 def get_wordnet_pos(treebank_tag): #nltk的tag需要转换为wordnet的tag以便做词性还原
@@ -52,6 +52,7 @@ def match(word,cn):
 #加载词典
 ecDic={}
 synonymsDic={}
+filteredWords=[]
 fd=open("en2cn.dic","r",encoding="utf-8")
 for line in fd.readlines():
     line=line.replace("\n","")
@@ -74,6 +75,14 @@ for line in fd.readlines():
     synonymsDic[key]=entryList
 fd.close()
 
+fd=open("filter.txt","r",encoding="utf-8")
+for line in fd.readlines():
+    line=line.replace("\n","")
+    splitted=line.split("\t")
+    for word in splitted:
+        filteredWords.append(word)
+fd.close()
+
 #print(ecDic)
 #print(synonymsDic)
 
@@ -85,33 +94,47 @@ for line in f.readlines():
     cn=line.split("\t")[1]
     tokens = nltk.word_tokenize(en)
     tagged = nltk.pos_tag(tokens)
-    for item in tagged:
+    entities = nltk.chunk.ne_chunk(tagged)
+    for item in entities:
         word=str(item[0])
+        if type(item)==nltk.tree.Tree:
+            print(str(item)+"这是命名实体，跳过")
+
+            continue
         if item[1].startswith("JJ") or item[1].startswith("NN") or item[1].startswith("VB") or item[1].startswith("WP"):
             print("\n"+word+" （词形还原后："+lemmatize(item)+"）是实词")
         else:
             continue #只有实词才进行匹配检测
+        if cn.find(word)!=-1:
+            print("英文词直接放在了翻译中")
+            continue           
+        if lemmatize(item) in filteredWords:
+            print("该词被过滤")
+            continue
 
         if lemmatize(item) in ecDic: #优先使用进行词形还原的词
             word=lemmatize(item)
         elif word in ecDic:
             word=word
-        elif word.lower() in ecDic:
-            word=word.lower()
+        #elif word.lower() in ecDic:
+        #    word=word.lower()
         else:
             print("词典中没有该条目")
             continue
-
         
         result=match(word,cn)
         if result==False:
             print("False. "+word+"在“"+cn+"”中没有被翻译出来。")
         else:
             print("True. "+word+"在“"+cn+"”中有被翻译出来。")
-        
+        #os.system("pause")
         if result==False:
-            keep.append(line)
+            keep.append(line.replace("\n","\t")+word+"没有被翻译出来。\n"+word+"的释义为"+str(ecDic[word])+"\n\n")
             break
 
-print(keep)
+fw=open("out.txt","w",encoding="utf-8")
+for item in keep:
+    print(item)
+    fw.write(item)
+fw.close()
             

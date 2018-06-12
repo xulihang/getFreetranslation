@@ -22,11 +22,13 @@ def lemmatize(word):
     wordLowercase=word[0].lower()
     return lemmatizer.lemmatize(wordLowercase, pos=get_wordnet_pos(word[1]))
 
-def match(word,cn):
+def match(word,cn,pos):
 
     result=True #默认是有匹配的
     for entry in ecDic[word]:
         print(entry)
+        if entry[-1]=="的" and pos.startswith("J"): #形容词去的
+            entry=entry[:-1]
         if cn.find(entry)==-1: #该释义没有匹配，查看其同义词是否匹配
             result=False
             if entry in synonymsDic:
@@ -122,7 +124,7 @@ for line in f.readlines():
             print("词典中没有该条目")
             continue
         
-        result=match(word,cn)
+        result=match(word,cn,item[1])
         if result==False:
             print("False. "+word+"在“"+cn+"”中没有被翻译出来。")
         else:
